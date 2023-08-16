@@ -597,6 +597,14 @@ Escalations have been resolved successfully!
 Escalation status:
 - [CodingNameKiki](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/68/#issuecomment-1642773395): accepted
 
+**Unstoppable-DeFi**
+
+https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/19
+
+**maarcweiss**
+
+Fixed by moving the `repay()` position logic to before the position is closed
+
 # Issue H-2: `reduce_margin_by_amount` in `Vault.reduce_position` is wrongly calculated 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/85 
@@ -763,6 +771,10 @@ def reduce_position(
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/3
 
+**maarcweiss**
+
+Fixed by using `debt_amount + position.margin_amount` instead of `debt_amount`
+
 # Issue H-3: Vault: The attacker can sandwich attack himself on swaps in open_position, close_position and reduce_position to make a bad debt 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/140 
@@ -868,6 +880,10 @@ Escalations have been resolved successfully!
 Escalation status:
 - [twicek](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/140/#issuecomment-1644043765): rejected
 
+**maarcweiss**
+
+Fixed by calling ` self._is_liquidatable(position_uid)` after opening and reducing a position.
+
 # Issue H-4: `reduce_position` doesn’t update margin mapping correctly 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/143 
@@ -940,6 +956,10 @@ Consider modifying the code like this:
 **Unstoppable-DeFi**
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/6
+
+**maarcweiss**
+
+Fixed by adding back margin to the user's margin mapping while reducing the position
 
 # Issue H-5: Leverage calculation is wrong 
 
@@ -1090,6 +1110,10 @@ Escalations have been resolved successfully!
 Escalation status:
 - [twicek](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/150/#issuecomment-1643977677): accepted
 
+**maarcweiss**
+
+Fixed by changing the leverage calculation formula from using `* (_debt_value + _margin_value)` to using `* (_position_value)` instead
+
 # Issue H-6: Vault: `_update_debt` does not accrue interest 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/167 
@@ -1210,6 +1234,10 @@ Escalations have been resolved successfully!
 Escalation status:
 - [0x00ffDa](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/167/#issuecomment-1643785849): accepted
 
+**maarcweiss**
+
+Fixed by calling `last_debt_update` after `_debt_interest_since_last_update`
+
 # Issue H-7: Adversary manipulate the middle path when calling `execute_dca_order`, resulting user loss, benefiting the attacker 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/182 
@@ -1301,6 +1329,18 @@ Manual Review
 
 Might need to have a minimal desired output amount of range (for the output token), or remove the option to input manual path with anyone can call the `execute_dca_order` then replace it with the Oracle price rate. Other way, consider implement a whitelist token for swap path.
 
+
+
+
+## Discussion
+
+**Unstoppable-DeFi**
+
+https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/18
+
+**maarcweiss**
+
+Fixed by adding a whitelist of tokens that users can swap from. Although fixed, I see that tokens have been hardcoded in the contract. It would be better to not hardcode them and add a setter function for the whitelisting of those tokens.
 
 # Issue H-8: Interested calculated is ampliefied by multiple of 1000 in `_debt_interest_since_last_update` 
 
@@ -1443,6 +1483,10 @@ Escalation status:
 - [Nabeel-javaid](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/191/#issuecomment-1642646030): accepted
 - [twicek](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/191/#issuecomment-1642890890): accepted
 
+**maarcweiss**
+
+Fixed by calling PERCENTAGE_BASE_HIGH  instead of PERCENTAGE_BASE for the interest calculation
+
 # Issue M-1: Debt is not updated when removing margin from a position 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/9 
@@ -1494,6 +1538,10 @@ Call `_update_debt` at the beginning of the remove margin function
 **Unstoppable-DeFi**
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/1
+
+**maarcweiss**
+
+Fixed by calling update debt when removing margin from positions
 
 # Issue M-2: _account_for_withdraw_liquidity rounding in the wrong direction will run out of the vault 
 
@@ -1573,6 +1621,18 @@ Manual Review
 
 Round up in _amount_to_lp_shares
 
+
+
+
+## Discussion
+
+**Unstoppable-DeFi**
+
+https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/17
+
+**maarcweiss**
+
+Fixed by subtracting a share from the calculation of `self._amount_to_lp_shares`  to account for the exposed rounding error
 
 # Issue M-3: Spot dex cant handle fee-on-transfer tokens 
 
@@ -1735,6 +1795,10 @@ Escalation status:
 - [dot-pengun](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/40/#issuecomment-1643428684): accepted
 - [twicek](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/40/#issuecomment-1643812283): accepted
 
+**maarcweiss**
+
+Fixed by using the common pattern of checking balances before and after the transfers and calculating the real amount in spot dex
+
 # Issue M-4: `Vault._amount_per_base_lp_share` should also consider bad debt when `safety_module_lp_total_amount` is not enough 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/92 
@@ -1883,6 +1947,38 @@ def _amount_per_base_lp_share(_token: address) -> uint256:
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/16
 
+**maarcweiss**
+
+Introduced a new view function to account for when the bad debt surpasses the amount covered by `safety_module`. Missing
+
+```diff
++ if self.bad_debt[_token] > self.safety_module_lp_total_amount[_token] + self.base_lp_total_amount[_token]:
++       return 0
+```
+from watsons recommendation though. Seems good to me but I would like @Unstoppable-DeFi  to re-check if letting this check out was intended
+
+**Unstoppable-DeFi**
+
+Yes, intended.
+
+The definition of bad debt is the amount of liquidity that was borrowed to open a position and not recovered when closing the position (offset by the traders provided margin).
+Therefore the maximum amount of bad debt that could theoretically be accrued is the total amount of liquidity available (`self.safety_module_lp_total_amount[_token] + self.base_lp_total_amount[_token]`). There is no scenario where bad debt could be greater than this since closing a position cannot end in a negative return (i.e. is clamped to `0`).
+
+**maarcweiss**
+
+> Introduced a new view function to account for when the bad debt surpasses the amount covered by `safety_module`. Missing
+> 
+> ```diff
+> + if self.bad_debt[_token] > self.safety_module_lp_total_amount[_token] + self.base_lp_total_amount[_token]:
+> +       return 0
+> ```
+> 
+> from watsons recommendation though. Seems good to me but I would like @Unstoppable-DeFi to re-check if letting this check out was intended
+
+Following the sign-off, the previously explained snippet was not included because bad debt can't actually surpass:
+`self.safety_module_lp_total_amount[_token] + self.base_lp_total_amount[_token]` therefore the case is not accounted for in the contracts
+
+
 # Issue M-5: The `Vault._update_debt()` function should be executed before admin sets new interest rate via `Vault.set_variable_interest_parameters()` 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/103 
@@ -1957,6 +2053,10 @@ def set_variable_interest_parameters(
 **Unstoppable-DeFi**
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/4
+
+**maarcweiss**
+
+Fixed by calling update_debt before setting new interest params in the `set_variable_interest_parameters` function
 
 # Issue M-6: The `Vault._to_usd_oracle_price()` function uses the same `ORACLE_FRESHNESS_THRESHOLD` for all token prices feeds which is incorrect 
 
@@ -2039,6 +2139,10 @@ Use the corresponding heartbeat `ORACLE_FRESHNESS_THRESHOLD` for each token in t
 **Unstoppable-DeFi**
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/11
+
+**maarcweiss**
+
+Fixed by introducing a mapping that has an individual `ORACLE_FRESHNESS_THRESHOLD ` for each token, instead of using the same one for all of them.
 
 # Issue M-7: Vault multihop swaps for any token pair will fail in one direction 
 
@@ -2143,6 +2247,10 @@ Escalations have been resolved successfully!
 Escalation status:
 - [twicek](https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/108/#issuecomment-1643777317): accepted
 
+**maarcweiss**
+
+Fixed by storing both paths from token 1 to token 2 and from token 2 to token 1. Lacking test coverage for this PR though
+
 # Issue M-8: `MarginDex::execute_limit_order` will always revert 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/111 
@@ -2218,6 +2326,10 @@ Manual Review
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/15
 
+**maarcweiss**
+
+Fixed by removing the code where the limit order was deleted: `self.limit_orders[_uid] = empty(LimitOrder)`
+
 # Issue M-9: Users trying to reduce their positions with market orders will always revert 
 
 Source: https://github.com/sherlock-audit/2023-06-unstoppable-judging/issues/120 
@@ -2276,4 +2388,8 @@ if min_amount_out == 0:
 **Unstoppable-DeFi**
 
 https://github.com/Unstoppable-DeFi/unstoppable-dex-audit/pull/5
+
+**maarcweiss**
+
+Fixed by shifting the calculation from using the whole position `position.position_amount`  to the actual amount the user is trying to reduce `_reduce_by_amount`
 
